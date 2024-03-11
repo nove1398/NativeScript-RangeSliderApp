@@ -1,10 +1,7 @@
 <template>
   <Frame>
     <Page :backgroundSpanUnderStatusBar="true">
-        <RangeSlider 
-        :max="100" 
-        :min="0" 
-        class="range"/>
+        <RangeSlider class="range"/>
     </Page>
   </Frame>
 </template>
@@ -29,15 +26,13 @@ function logMessage() {
   console.log('You have tapped the message!');
 }
 
-let interval: any;
+
 onMounted(() => {
   console.log('mounted home component');
-  interval = setInterval(() => counter.value++, 100);
 });
 
 onUnmounted(() => {
   console.log('unmounted');
-  clearInterval(interval);
 });
 </script>
 

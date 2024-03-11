@@ -1,21 +1,19 @@
 <template>
-    <AbsoluteLayout rows="*" columns="*" class="wrapper" ref="parent">
+    <AbsoluteLayout class="wrapper" ref="parent">
       <Label 
-      row="0" 
-      column="0" 
       ref="sliderTrack" 
       id="track" 
       backgroundColor="grey" 
       height="10" 
       width="100%" 
       :top="5" />
-      <Label row="0" column="0" ref="minHandle" class="thumb1" @pan="panFunc"/>
-      <Label row="0" column="0" ref="maxHandle" class="thumb2" @pan="panFunc" />
+      <Label ref="minHandle" class="thumb1" id="minHandle" :left="20" @pan="panFunc"/>
+      <Label ref="maxHandle" class="thumb2" id="maxHandle" :left="60" @pan="panFunc" />
     </AbsoluteLayout>
   </template>
   
   <script setup lang="ts">
-import { GestureStateTypes } from '@nativescript/core';
+import { GestureStateTypes, getViewById } from '@nativescript/core';
 import { onMounted, ref, toRaw } from 'nativescript-vue';
 
 
@@ -30,10 +28,10 @@ import { onMounted, ref, toRaw } from 'nativescript-vue';
     },
   });
   
-  const sliderTrack = ref();
+  const sliderTrack = ref<HTMLLabelElement>();
   const minHandle = ref<HTMLLabelElement>();
   const maxHandle = ref<HTMLLabelElement>();
-  const parent = ref<HTMLGridLayoutElement>();
+  const parent = ref<HTMLAbsoluteLayoutElement>();
   const startX = ref(20);
 
 
@@ -45,7 +43,7 @@ import { onMounted, ref, toRaw } from 'nativescript-vue';
   const panFunc = (evt: NativePanGestureEvent<HTMLLabelElement>) => {
     const targetView = evt.view;
     const track = sliderTrack.value;
-    if(!track || !parent.value) return;
+    if(!track || !parent.value || !minHandle.value) return;
 
     if(evt.state === GestureStateTypes.began){
       startX.value  = targetView.translateX;
@@ -53,6 +51,16 @@ import { onMounted, ref, toRaw } from 'nativescript-vue';
 
     if(evt.state === GestureStateTypes.changed){
       const deltaX = startX.value - -evt.deltaX;
+      if(targetView.id.toLowerCase() == 'maxHandle'.toLowerCase()){
+        if((targetView.parent.getViewById('minHandle') as any).translateX >= deltaX){
+          return;
+        }
+      }
+      if(targetView.id.toLowerCase() == 'minHandle'.toLowerCase()){
+        if((targetView.parent.getViewById('maxHandle') as any).translateX <= deltaX){
+          return;
+        }
+      }
       targetView.translateX = deltaX;
     }
 
@@ -60,6 +68,12 @@ import { onMounted, ref, toRaw } from 'nativescript-vue';
 
     }
   };
+
+  const isValidRange = () : boolean => {
+    if(!sliderTrack.value || !maxHandle.value) return false;
+
+    return true;
+  }
   </script>
 
 <style scoped lang="scss" >
