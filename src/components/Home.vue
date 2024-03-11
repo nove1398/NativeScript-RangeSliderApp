@@ -1,3 +1,14 @@
+<template>
+  <Frame>
+    <Page :backgroundSpanUnderStatusBar="true">
+        <RangeSlider 
+        :max="100" 
+        :min="0" 
+        class="range"/>
+    </Page>
+  </Frame>
+</template>
+
 <script lang="ts" setup>
 import {
   ref,
@@ -7,6 +18,7 @@ import {
   $navigateTo,
 } from 'nativescript-vue';
 import Details from './Details.vue';
+import RangeSlider from './RangeSlider.vue';
 
 const counter = ref(0);
 const message = computed(() => {
@@ -19,7 +31,7 @@ function logMessage() {
 
 let interval: any;
 onMounted(() => {
-  console.log('mounted');
+  console.log('mounted home component');
   interval = setInterval(() => counter.value++, 100);
 });
 
@@ -29,36 +41,10 @@ onUnmounted(() => {
 });
 </script>
 
-<template>
-  <Frame>
-    <Page>
-      <ActionBar>
-        <Label text="Home" class="font-bold text-lg" />
-      </ActionBar>
 
-      <GridLayout rows="*, auto, auto, *" class="px-4">
-        <Label
-          row="1"
-          class="text-xl align-middle text-center text-gray-500"
-          :text="message"
-          @tap="logMessage"
-        />
-
-        <Button
-          row="2"
-          @tap="$navigateTo(Details)"
-          class="mt-4 px-4 py-2 bg-white border-2 border-blue-400 rounded-lg"
-          horizontalAlignment="center"
-        >
-          View Details
-        </Button>
-      </GridLayout>
-    </Page>
-  </Frame>
-</template>
 
 <style>
-/* .info {
-    font-size: 20;
-  } */
+.range{
+  margin-top: 10%;
+}
 </style>

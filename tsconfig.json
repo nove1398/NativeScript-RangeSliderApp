@@ -17,7 +17,12 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": [
+      "node",
+      "@nativescript-dom/core-types",
+      "@nativescript-dom/vue-types"
+      ],
   },
   "vueCompilerOptions": {
     "target": 3,
