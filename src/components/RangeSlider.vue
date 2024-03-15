@@ -3,7 +3,7 @@
 		<StackLayout
 			orientation="horizontal"
 			class="slider-text">
-			<Label :text="`Min ${minVal} - Max ${maxVal}`" />
+			<Label :text="`Min ${0} - Max ${0}`" />
 		</StackLayout>
 		<Label
 			id="track"
@@ -11,12 +11,11 @@
 			:onLayoutChanged="layoutChanged"
 			:backgroundColor="trackColor"
 			width="100%" />
-		<!-- <ContentView
+		<ContentView
 			class="thumb1"
-			ref="thumb1"
+			ref="minHandle"
 			id="minHandle"
-			:left="props.initialMinHandle"
-			@pan="panGestureCallback" /> -->
+			@pan="panGestureCallback" />
 		<ContentView
 			ref="maxHandle"
 			class="thumb2"
@@ -27,14 +26,7 @@
 
 <script setup lang="ts">
 	import { refView } from "@nativescript-use/vue";
-	import {
-		AbsoluteLayout,
-		ContentView,
-		GestureStateTypes,
-		Screen,
-		Utils,
-		View,
-	} from "@nativescript/core";
+	import { AbsoluteLayout, ContentView, GestureStateTypes, Screen, Utils, View } from "@nativescript/core";
 	import { computed, onMounted, ref } from "nativescript-vue";
 
 	const props = defineProps({
@@ -58,13 +50,8 @@
 		},
 	});
 
-	const startX = ref(20);
-	const minVal = ref(20);
-	const maxVal = ref(20);
+	const startX = ref(0);
 	const trackWidth = ref(0);
-	const trackStartX = ref(0);
-	const trackEndX = ref(0);
-	const trackView = refView<HTMLLabelElement>();
 	const maxHandle = refView<ContentView>();
 	const minHandle = refView<ContentView>();
 	const handleWidth = 20;
@@ -75,48 +62,34 @@
 
 	const layoutChanged = (evt: any) => {
 		const trackView = evt.object as HTMLLabelElement;
-		const layoutWidth = Math.floor(trackView.getActualSize().width);
-		const layoutStartX = trackView.getLocationInWindow().x;
-		const layoutEndX = Math.floor(layoutStartX + layoutWidth);
-		trackWidth.value = layoutWidth;
-		trackStartX.value = layoutStartX;
-		trackEndX.value = layoutEndX;
-		maxHandle.value.translateX = trackWidth.value / 2 + 20 - handleWidth / 2;
+		trackWidth.value = Math.floor(trackView.getActualSize().width);
+		maxHandle.value.translateX = trackWidth.value / 2 + 20;
+		minHandle.value.translateX = props.initialMinHandle;
 	};
 
-	const panGestureCallback = (
-		evt: NativePanGestureEvent<HTMLContentViewElement>
-	) => {
+	const panGestureCallback = (evt: NativePanGestureEvent<HTMLContentViewElement>) => {
 		const targetView = evt.view;
 		const isMaxHandle = targetView.id.toLowerCase() === "maxhandle";
 		const isMinHandle = targetView.id.toLowerCase() === "minhandle";
+		const handleBuffer = 40;
+		const halfTrackWidth = trackWidth.value / 2;
 
 		if (evt.state === GestureStateTypes.began) {
 			startX.value = targetView.translateX;
 		}
 
 		if (evt.state === GestureStateTypes.changed) {
-			// const moveDeltaX = startX.value + evt.deltaX;
-			// const deltaX = Math.max(
-			// 	0,
-			// 	Math.min(moveDeltaX, trackWidth.value - handleWidth)
-			// );
-			// targetView.translateX = deltaX;
-			const deltaX = startX.value - -evt.deltaX;
+			const deltaX = startX.value + evt.deltaX;
 
 			// Apply deltaX with constraint checks for both handles
 			if (isMaxHandle) {
-				const newMaxX = targetView.translateX + deltaX;
-				targetView.translateX = Math.max(
-					minHandle.value.translateX + handleWidth + 40,
-					Math.min(trackWidth.value - handleWidth, newMaxX)
-				);
+				const minHandlePos = minHandle.value.translateX + handleWidth + handleBuffer;
+				const lowerBounds = Math.max(halfTrackWidth, minHandlePos);
+				targetView.translateX = Math.max(lowerBounds, Math.min(deltaX, trackWidth.value - handleWidth));
 			} else if (isMinHandle) {
-				const newMinX = targetView.translateX + deltaX;
-				targetView.translateX = Math.max(
-					handleWidth,
-					Math.min(newMinX, maxHandle.value.translateX - handleWidth - 40)
-				);
+				const maxHandlePos = maxHandle.value.translateX - handleWidth - handleBuffer;
+				const upperBounds = Math.max(0, Math.min(deltaX, halfTrackWidth, maxHandlePos));
+				targetView.translateX = upperBounds;
 			}
 			console.log("Current translateX: " + targetView.translateX);
 		}
@@ -125,16 +98,7 @@
 			const isMaxHandle = targetView.id.toLowerCase() === "maxhandle";
 		}
 
-		function CalculateValueRange(isMaxHandle: boolean, deltaX: number) {
-			// Calculate the total length of the trackbar excluding handle diameters
-			let trackLength = trackWidth.value / 2 - 20 - 20; // Max length - handle diameter (twice)
-
-			// Calculate the percentage position of the handle on the track
-			let percentage = deltaX / parseFloat(trackLength.toPrecision(3));
-
-			// Calculate the current value based on the percentage position
-			let value = (percentage * 100).toFixed();
-		}
+		function CalculateValueRange(isMaxHandle: boolean, deltaX: number) {}
 	};
 </script>
 
