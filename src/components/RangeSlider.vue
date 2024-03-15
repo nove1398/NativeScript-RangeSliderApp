@@ -5,12 +5,18 @@
 			class="slider-text">
 			<Label :text="`Min ${0} - Max ${0}`" />
 		</StackLayout>
-		<Label
+		<ContentView
 			id="track"
 			class="slider-track"
 			:onLayoutChanged="layoutChanged"
 			:backgroundColor="trackColor"
 			width="100%" />
+		<ContentView
+			ref="rangeTrack"
+			class="range-track"
+			:width="rangeTrackWidth"
+			backgroundColor="purple"
+			id="rangetrack" />
 		<ContentView
 			class="thumb1"
 			ref="minHandle"
@@ -55,13 +61,17 @@
 	const maxHandle = refView<ContentView>();
 	const minHandle = refView<ContentView>();
 	const handleWidth = 20;
+	const trackStartX = ref();
+	const rangeTrack = refView<ContentView>();
+	const rangeTrackWidth = ref();
 
 	onMounted(() => {
 		console.log("Onmounted RangeSlider");
 	});
 
 	const layoutChanged = (evt: any) => {
-		const trackView = evt.object as HTMLLabelElement;
+		const trackView = evt.object as HTMLContentViewElement;
+		trackStartX.value = trackView.getLocationInWindow().x;
 		trackWidth.value = Math.floor(trackView.getActualSize().width);
 		maxHandle.value.translateX = trackWidth.value / 2 + 20;
 		minHandle.value.translateX = props.initialMinHandle;
@@ -83,14 +93,21 @@
 
 			// Apply deltaX with constraint checks for both handles
 			if (isMaxHandle) {
-				const minHandlePos = minHandle.value.translateX + handleWidth + handleBuffer;
+				const minHandlePos = minHandle.value.translateX + handleBuffer;
 				const lowerBounds = Math.max(halfTrackWidth, minHandlePos);
 				targetView.translateX = Math.max(lowerBounds, Math.min(deltaX, trackWidth.value - handleWidth));
 			} else if (isMinHandle) {
-				const maxHandlePos = maxHandle.value.translateX - handleWidth - handleBuffer;
+				const maxHandlePos = maxHandle.value.translateX - handleBuffer;
 				const upperBounds = Math.max(0, Math.min(deltaX, halfTrackWidth, maxHandlePos));
 				targetView.translateX = upperBounds;
 			}
+
+			// Update the range between handles
+			const rangeTrackTot = Math.max(0, maxHandle.value.translateX - (minHandle.value.translateX + handleWidth));
+			rangeTrack.value.translateX = rangeTrack.value.translateX = minHandle.value.translateX + handleWidth;
+			rangeTrackWidth.value = rangeTrackTot;
+
+			calculateValueRange(true);
 			console.log("Current translateX: " + targetView.translateX);
 		}
 
@@ -98,7 +115,22 @@
 			const isMaxHandle = targetView.id.toLowerCase() === "maxhandle";
 		}
 
-		function CalculateValueRange(isMaxHandle: boolean, deltaX: number) {}
+		function calculateValueRange(isMaxHandle: boolean) {
+			const minValue = 18; // Minimum age in the range
+			const maxValue = 100; // Maximum age in the range
+
+			const minHandleValue =
+				Math.max(0, (minHandle.value.translateX - trackStartX.value) / (trackWidth.value - handleWidth)) * 100;
+			const maxHandleValue =
+				Math.max(0, (maxHandle.value.translateX - trackStartX.value) / (trackWidth.value - handleWidth)) * 100;
+
+			// Map percentages to actual ages within the range
+			const minHandlePercent = Math.floor(minValue + (minHandleValue / 100) * (maxValue - minValue));
+			const maxHandlePercent = Math.floor(minValue + (maxHandleValue / 100) * (maxValue - minValue));
+
+			console.log("Min Age:", minHandlePercent);
+			console.log("Max Age:", maxHandlePercent);
+		}
 	};
 </script>
 
@@ -110,10 +142,15 @@
 		align-items: center;
 		justify-content: center;
 	}
+	.range-track {
+		background-color: blueviolet;
+		height: 5;
+		margin-top: 36;
+		border-radius: 50;
+	}
 	.slider-track {
 		border-radius: 50;
 		height: 5;
-		margin-top: 36;
 		margin-top: 36;
 	}
 	.slider-text {
