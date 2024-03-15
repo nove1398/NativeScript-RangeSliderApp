@@ -1,10 +1,7 @@
-import { createApp, registerElement } from 'nativescript-vue';
-import Home from './components/Home.vue';
-import {GestureRootView, install} from '@nativescript-community/gesturehandler';
-import { CoreTypes, TouchManager } from '@nativescript/core';
+import { createApp, registerElement } from "nativescript-vue";
+import Home from "./components/Home.vue";
+import { CoreTypes, TouchManager } from "@nativescript/core";
+import RootView from "./components/RootView.vue";
+import { router } from "~/plugins/router";
 
-install();
-
-
-createApp(Home)
-.start();
+createApp(RootView).use(router).start();

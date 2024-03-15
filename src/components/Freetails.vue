@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 	import { ref, $navigateBack } from "nativescript-vue";
 	import { useRouter } from "router-vue-native";
+	import RangeSlider from "./RangeSlider.vue";
 
 	const router = useRouter();
 	const items = ref(
@@ -14,7 +15,8 @@
 	<Page actionBarHidden="true">
 		<GridLayout rows="auto, *">
 			<Label
-				text="Details"
+				text="Log Message"
+				@tap="() => router.push('/details')"
 				class="text-center px-4 py-10 text-2xl text-gray-900 font-bold" />
 
 			<ContentView
@@ -28,13 +30,10 @@
 						<GridLayout
 							columns="*, auto"
 							class="px-4">
-							<Label
-								:text="item"
-								class="text-3xl py-3 text-white" />
 							<ContentView
 								col="1"
-								class="w-5 h-5 rounded-full bg-white"
-								@tap="router.push('/freetails')" />
+								@tap="() => router.push('/home')"
+								class="w-5 h-5 rounded-full bg-white" />
 						</GridLayout>
 					</template>
 				</ListView>
