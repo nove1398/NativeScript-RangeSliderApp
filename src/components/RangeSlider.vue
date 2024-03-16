@@ -1,14 +1,16 @@
 <template>
-	<AbsoluteLayout class="wrapper">
+	<AbsoluteLayout
+		class="wrapper"
+		:onLayoutChanged="layoutChanged">
 		<StackLayout
 			orientation="horizontal"
 			class="slider-text">
-			<Label :text="`Min ${0} - Max ${0}`" />
+			<Label :text="`Min ${minAgeValue} - Max ${maxAgeValue}`" />
 		</StackLayout>
 		<ContentView
 			id="track"
+			ref="mainTrack"
 			class="slider-track"
-			:onLayoutChanged="layoutChanged"
 			:backgroundColor="trackColor"
 			width="100%" />
 		<ContentView
@@ -33,7 +35,7 @@
 <script setup lang="ts">
 	import { refView } from "@nativescript-use/vue";
 	import { AbsoluteLayout, ContentView, GestureStateTypes, Screen, Utils, View } from "@nativescript/core";
-	import { computed, onMounted, ref } from "nativescript-vue";
+	import { onMounted, ref } from "nativescript-vue";
 
 	const props = defineProps({
 		trackColor: {
@@ -58,12 +60,15 @@
 
 	const startX = ref(0);
 	const trackWidth = ref(0);
+	const mainTrack = refView<ContentView>();
 	const maxHandle = refView<ContentView>();
 	const minHandle = refView<ContentView>();
 	const handleWidth = 20;
 	const trackStartX = ref();
 	const rangeTrack = refView<ContentView>();
 	const rangeTrackWidth = ref();
+	const maxAgeValue = ref();
+	const minAgeValue = ref();
 
 	onMounted(() => {
 		console.log("Onmounted RangeSlider");
@@ -75,6 +80,9 @@
 		trackWidth.value = Math.floor(trackView.getActualSize().width);
 		maxHandle.value.translateX = trackWidth.value / 2 + 20;
 		minHandle.value.translateX = props.initialMinHandle;
+
+		calculateRangeTrack();
+		calculateValueRange();
 	};
 
 	const panGestureCallback = (evt: NativePanGestureEvent<HTMLContentViewElement>) => {
@@ -103,34 +111,39 @@
 			}
 
 			// Update the range between handles
-			const rangeTrackTot = Math.max(0, maxHandle.value.translateX - (minHandle.value.translateX + handleWidth));
-			rangeTrack.value.translateX = rangeTrack.value.translateX = minHandle.value.translateX + handleWidth;
-			rangeTrackWidth.value = rangeTrackTot;
+			calculateRangeTrack();
 
-			calculateValueRange(true);
+			calculateValueRange();
 			console.log("Current translateX: " + targetView.translateX);
 		}
 
 		if (evt.state === GestureStateTypes.ended) {
 			const isMaxHandle = targetView.id.toLowerCase() === "maxhandle";
 		}
+	};
 
-		function calculateValueRange(isMaxHandle: boolean) {
-			const minValue = 18; // Minimum age in the range
-			const maxValue = 100; // Maximum age in the range
+	// Calculate range value
+	const calculateRangeTrack = () => {
+		const rangeTrackTot = Math.max(0, maxHandle.value.translateX - (minHandle.value.translateX + handleWidth));
+		rangeTrack.value.translateX = rangeTrack.value.translateX = minHandle.value.translateX + handleWidth;
+		rangeTrackWidth.value = rangeTrackTot;
+	};
 
-			const minHandleValue =
-				Math.max(0, (minHandle.value.translateX - trackStartX.value) / (trackWidth.value - handleWidth)) * 100;
-			const maxHandleValue =
-				Math.max(0, (maxHandle.value.translateX - trackStartX.value) / (trackWidth.value - handleWidth)) * 100;
+	// Calculate values for range handles
+	const calculateValueRange = () => {
+		const minValue = 18; // Minimum age in the range
+		const maxValue = 100; // Maximum age in the range
 
-			// Map percentages to actual ages within the range
-			const minHandlePercent = Math.floor(minValue + (minHandleValue / 100) * (maxValue - minValue));
-			const maxHandlePercent = Math.floor(minValue + (maxHandleValue / 100) * (maxValue - minValue));
+		const minHandleValue =
+			Math.max(0, (minHandle.value.translateX - trackStartX.value) / (trackWidth.value - handleWidth)) * 100;
+		const maxHandleValue =
+			Math.max(0, (maxHandle.value.translateX - trackStartX.value) / (trackWidth.value - handleWidth)) * 100;
 
-			console.log("Min Age:", minHandlePercent);
-			console.log("Max Age:", maxHandlePercent);
-		}
+		// Map percentages to actual ages within the range
+		const minHandlePercent = Math.floor(minValue + (minHandleValue / 100) * (maxValue - minValue));
+		const maxHandlePercent = Math.floor(minValue + (maxHandleValue / 100) * (maxValue - minValue));
+		minAgeValue.value = minHandlePercent;
+		maxAgeValue.value = maxHandlePercent;
 	};
 </script>
 
